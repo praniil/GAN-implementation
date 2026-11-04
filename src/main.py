@@ -89,23 +89,27 @@ class Generator(nn.Module):
         return image
 
 
-    # descriminator
-    class Discriminator(nn.Module):
-        def __init__(self):
-            super().__init__()
-            self.model = nn.Sequential(
-                nn.Linear(IMAGE_SIZE, 512),
-                nn.LeakyReLU(0.2),
-                nn.Linear(512, 256),
-                nn.LeakyReLU(0.2),
-                nn.Linear(256, 1),
-                nn.Sigmoid()
-            )
+# descriminator
+class Discriminator(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.model = nn.Sequential(
+            nn.Linear(IMAGE_SIZE, 512),
+            nn.LeakyReLU(0.2),
+            nn.Linear(512, 256),
+            nn.LeakyReLU(0.2),
+            nn.Linear(256, 1),
+            nn.Sigmoid()
+        )
 
-        def forward(self, img):
-            # flatening the image
-            # [32, 1, 28, 28] -> [32, 784]
-            img = img.view(-1, IMAGE_SIZE)
-            validity = self.model(img)
-            return validity
+    def forward(self, img):
+        # flatening the image
+        # [32, 1, 28, 28] -> [32, 784]
+        img = img.view(-1, IMAGE_SIZE)
+        validity = self.model(img)
+        return validity
+
+# initialize networks
+generator = Generator(latent_dim).to(DEVICE)
+descriminator = Discriminator().to(DEVICE)
 
