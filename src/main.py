@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader
 import os
 import torch.nn as nn
+import torch.optim as optim
 
 transform = transforms.Compose([
     #.ToTensor() -> image to pytorch tensor
@@ -53,6 +54,7 @@ print("labels shape: ", labels.shape)
 latent_dim = 100
 EPOCHS = 50
 IMAGE_SIZE = 784
+LEARNING_RATE = 0.001
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -111,5 +113,95 @@ class Discriminator(nn.Module):
 
 # initialize networks
 generator = Generator(latent_dim).to(DEVICE)
-descriminator = Discriminator().to(DEVICE)
+discriminator = Discriminator().to(DEVICE)
+
+# loss and optimizers
+criterion = nn.BCELoss()
+optimizer_G = optim.Adam(
+    generator.parameters(),
+    lr=LEARNING_RATE,
+    betas=(0.5, 0.999)
+)
+
+optimizer_D = optim.Adam(
+    generator.parameters(),
+    lr=LEARNING_RATE,
+    betas=(0.5, 0.999)
+)
+
+# fixed noise for visulationzation
+# 64 -> number of noise vectors, 100 = number of values in each noise vector
+# they are the points in the latent space
+fixed_noise = torch.randn(
+    64, latent_dim, device=DEVICE
+)
+
+# training loop
+for epoch in range(EPOCHS):
+    for batch_idx, (real_images, _) in enumerate(train_loader):
+        real_images = real_images.to(DEVICE)
+        current_batch_size = real_images.size(0)
+        real_labels = torch.ones(
+            current_batch_size, 1, device=DEVICE
+        )
+        fake_labels = torch.zeros(
+            current_batch_size, 1, device=DEVICE
+        )
+
+        # train descriminator
+        optimizer_D.zero_grad()
+
+        # real images
+        real_output = discriminator(real_images)
+        loss_real = criterion(
+            real_output, real_labels
+        )
+
+        # fake images
+        noise = torch.randn(
+            current_batch_size, 
+            latent_dim,
+            device=DEVICE
+        )
+
+        fake_images = generator(noise)
+        fake_output = discriminator(fake_images.detach())
+
+        loss_fake = criterion(
+            fake_output, fake_labels
+        )
+
+        # Total discriminator loss
+        loss_D = loss_real + loss_fake
+        loss_D.backward()
+        optimizer_D.step()
+
+        # train generator
+        optimizer_G.zero_grad()
+
+        # generate new images
+        noise = torch.randn(
+            current_batch_size,
+            latent_dim, 
+            device=DEVICE
+        )
+
+        generated_images = generator(noise)
+
+        # generator wants discriminator to classify genearted images as real
+
+        output = discriminator(generated_images)
+        loss_G = criterion(
+            output, real_labels
+        )
+
+        loss_G.backward()
+        optimizer_G.step()
+
+        print(
+            f"Epoch[{epoch + 1}/ {EPOCHS}]"
+            f"Loss D: {loss_D.item(): .4f}"
+            f"Loss G: {loss_G.item(): .4f}"
+        )
+        
 
