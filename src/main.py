@@ -6,6 +6,7 @@ from torch.utils.data import DataLoader
 import os
 import torch.nn as nn
 import torch.optim as optim
+import torchvision.utils as vutils
 
 transform = transforms.Compose([
     #.ToTensor() -> image to pytorch tensor
@@ -204,4 +205,37 @@ for epoch in range(EPOCHS):
             f"Loss G: {loss_G.item(): .4f}"
         )
         
+        # generate sample images
+        generator.eval()
+        with torch.no_grad():
+            generated = generator(fixed_noise).cpu()
 
+            grid = vutils.make_grid(
+                generated,
+                nrow=8,
+                normalize=True
+            )
+
+            plt.figure(figsize=(8, 8))
+
+            plt.imshow(
+                grid.permute(1, 2, 0).squeeze(),
+                cmap="gray"
+            )
+
+            plt.axis("off")
+            plt.savefig(
+                f"../generated/epoch_{epoch+1}.png"
+            )
+
+            plt.close()
+
+        generator.train()
+
+#save the model
+torch.save(
+    generator.state_dict(),
+    "generator.pth"
+)
+
+print("training complete")
