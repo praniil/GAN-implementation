@@ -1,2 +1,6 @@
 /venv
 /dataset
+/generated
+/*.pth
+__pycache__/
+*.py[cod]
