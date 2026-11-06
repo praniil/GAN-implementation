@@ -10,13 +10,13 @@ The rows above always use the **same latent vectors**. Keeping the input fixed l
 
 ```mermaid
 flowchart LR
-    Z[Random latent vector<br/>100 values] --> G[Generator]
-    G --> F[Generated 28 × 28 image]
-    R[Real MNIST image] --> D[Discriminator]
+    Z["Random latent vector<br/>100 values"] --> G["Generator"]
+    G --> F["Generated 28 × 28 image"]
+    R["Real MNIST image"] --> D["Discriminator"]
     F --> D
-    D --> S[Realness score D(x)]
-    S --> LD[Train discriminator<br/>real → 1, fake → 0]
-    S --> LG[Train generator<br/>make fake → 1]
+    D --> S["Realness score D(x)"]
+    S --> LD["Train discriminator<br/>real → 1, fake → 0"]
+    S --> LG["Train generator<br/>make fake → 1"]
 ```
 
 The two networks improve by competing:
